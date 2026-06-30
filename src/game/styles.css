@@ -659,6 +659,7 @@ body {
   padding: 10px 12px; display: grid; gap: 8px; flex-shrink: 0;
   grid-template-columns: minmax(0, 1fr); min-width: 0;
 }
+.bet[hidden] { display: none; }
 @media (max-height: 720px) { .bet { padding: 8px 10px; gap: 6px; } }
 .bet .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .bet .stake-input {

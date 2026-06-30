@@ -360,7 +360,19 @@ function updateProPanelVisibility(state: RoundState): void {
   const proTabActive = !autoplay.active && ui.mode === "pro";
   const runningProRound = state.status === "running" && isProRound(state.mode);
   const showCompact = proTabActive || runningProRound;
-  refs.betPanel.hidden = showCompact;
+
+  // The legacy stake panel is fully detached from the DOM (not just
+  // CSS-hidden) while Pro mode is active. `.bet` declares its own
+  // `display: grid`, which has the same specificity as the browser's
+  // built-in `[hidden] { display: none }` rule — author CSS wins that tie,
+  // so toggling the `hidden` attribute alone silently failed to hide it
+  // (the old Pro controls kept reappearing). Removing the node outright
+  // sidesteps any such CSS cascade issue entirely, by construction.
+  if (showCompact) {
+    if (refs.betPanel.isConnected) refs.betPanel.remove();
+  } else if (!refs.betPanel.isConnected) {
+    refs.proCompact.before(refs.betPanel);
+  }
   refs.proCompact.hidden = !showCompact;
   if (showCompact) renderProCompact();
 }
