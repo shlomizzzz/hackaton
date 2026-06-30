@@ -763,6 +763,7 @@ function setMode(m: RoundMode): void {
   if (autoplay.active) return;
   ui.mode = m;
   if (m === "classic") classicRoundStarted = false;
+  autoplaySessionStarted = false;
   renderTabs();
   renderAction(engine.getState());
   showTapHintOnce(m);
@@ -778,6 +779,7 @@ function onTabAutoClick(): void {
 function onTabProClick(): void {
   if (autoplay.active) return;
   if (engine.getState().status === "running") return;
+  autoplaySessionStarted = false;
   openProModal();
 }
 
