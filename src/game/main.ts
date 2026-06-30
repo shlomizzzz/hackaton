@@ -350,7 +350,10 @@ function renderAction(state: RoundState): void {
     btn.classList.add("launch");
     main = "Next round…";
     btn.disabled = true;
-    refs.actionSub.textContent = autoplaySubText();
+    // No subtitle during the between-rounds wait — the round count and
+    // target are already shown in the Autoplay Compact View, so this
+    // button now just shows "Next round…" on its own, with nothing else.
+    refs.actionSub.textContent = "";
   } else {
     btn.classList.add("launch");
     main = "Launch";
