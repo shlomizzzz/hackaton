@@ -1,11 +1,14 @@
 import {
   CHEVRON_SVG,
   CLOSE_SVG,
+  COINS_SVG,
   HELP_SVG,
   HISTORY_SVG,
   ROCKET_SVG,
+  SHIELD_CHECK_SVG,
   SOUND_OFF_SVG,
   SOUND_ON_SVG,
+  TAP_SVG,
 } from "./icons";
 import { ROCKET_SKINS } from "./rockets";
 
@@ -41,6 +44,11 @@ export interface Refs {
   stakeDec: HTMLButtonElement;
   stakeInc: HTMLButtonElement;
   presets: HTMLButtonElement[];
+  betPanel: HTMLElement;
+  proCompact: HTMLElement;
+  proCompactInitial: HTMLElement;
+  proCompactPerTap: HTMLElement;
+  proCompactMax: HTMLElement;
   action: HTMLButtonElement;
   actionMain: HTMLElement;
   actionSub: HTMLElement;
@@ -73,6 +81,22 @@ export interface Refs {
   autoplayStakeInc: HTMLButtonElement;
   autoplayPresets: HTMLButtonElement[];
   autoplayStart: HTMLButtonElement;
+  proModal: HTMLElement;
+  proClose: HTMLButtonElement;
+  proInitialInput: HTMLInputElement;
+  proInitialDec: HTMLButtonElement;
+  proInitialInc: HTMLButtonElement;
+  proInitialPresets: HTMLButtonElement[];
+  proPerTapInput: HTMLInputElement;
+  proPerTapDec: HTMLButtonElement;
+  proPerTapInc: HTMLButtonElement;
+  proPerTapPresets: HTMLButtonElement[];
+  proMaxInput: HTMLInputElement;
+  proMaxDec: HTMLButtonElement;
+  proMaxInc: HTMLButtonElement;
+  proMaxPresets: HTMLButtonElement[];
+  proCurrentStakeValue: HTMLElement;
+  proStart: HTMLButtonElement;
 }
 
 const PRESET_VALUES = [1, 5, 10, 25];
@@ -187,7 +211,7 @@ export function mount(root: HTMLElement): Refs {
     </div>
     <button class="stop-autoplay" data-ref="btnStopAutoplay" hidden>Stop autoplay</button>
 
-    <div class="bet">
+    <div class="bet" data-ref="betPanel">
       <div class="row">
         <button class="step" data-ref="stakeDec" aria-label="decrease stake">−</button>
         <div class="stake-input">
@@ -201,6 +225,21 @@ export function mount(root: HTMLElement): Refs {
           (v) => `<button data-preset="${v}">€${v.toFixed(2)}</button>`,
         ).join("")}
         <button data-preset="max">MAX</button>
+      </div>
+    </div>
+
+    <div class="pro-compact" data-ref="proCompact" hidden>
+      <div>
+        <span class="lbl"><span class="icon">${COINS_SVG}</span>Initial Stake</span>
+        <span class="val" data-ref="proCompactInitial">€1.00</span>
+      </div>
+      <div>
+        <span class="lbl"><span class="icon">${TAP_SVG}</span>Per Tap</span>
+        <span class="val" data-ref="proCompactPerTap">+ €1.00</span>
+      </div>
+      <div>
+        <span class="lbl"><span class="icon">${SHIELD_CHECK_SVG}</span>Max Stake</span>
+        <span class="val" data-ref="proCompactMax">€50.00</span>
       </div>
     </div>
 
@@ -323,6 +362,100 @@ export function mount(root: HTMLElement): Refs {
         </div>
       </div>
     </div>
+
+    <div class="modal-backdrop" data-ref="proModal" hidden>
+      <div class="modal pro-modal" role="dialog" aria-labelledby="pro-title">
+        <header>
+          <h2 id="pro-title">PRO MODE SETTINGS</h2>
+          <button class="icon-btn close" data-ref="proClose" aria-label="Close">${CLOSE_SVG}</button>
+        </header>
+        <div class="body">
+          <p class="pro-sub">Customize your Pro mode strategy</p>
+
+          <div class="pro-field">
+            <div class="pro-field-head">
+              <span class="pro-field-icon">${COINS_SVG}</span>
+              <div>
+                <div class="pro-field-title">Initial Stake</div>
+                <div class="pro-field-desc">Your starting stake for each round</div>
+              </div>
+            </div>
+            <div class="ap-stepper">
+              <button type="button" class="ap-step" data-ref="proInitialDec" aria-label="decrease initial stake">−</button>
+              <div class="ap-input-prefix">
+                <span>€</span>
+                <input data-ref="proInitialInput" type="text" inputmode="decimal" value="1.00" size="1" aria-label="Initial stake" />
+              </div>
+              <button type="button" class="ap-step" data-ref="proInitialInc" aria-label="increase initial stake">+</button>
+            </div>
+            <div class="pro-presets pro-initial-presets">
+              ${PRESET_VALUES.map(
+                (v) => `<button type="button" data-preset="${v}">€${v.toFixed(2)}</button>`,
+              ).join("")}
+              <button type="button" data-preset="max">MAX</button>
+            </div>
+          </div>
+
+          <div class="pro-field">
+            <div class="pro-field-head">
+              <span class="pro-field-icon">${TAP_SVG}</span>
+              <div>
+                <div class="pro-field-title">Per Tap Bet</div>
+                <div class="pro-field-desc">Amount added to your stake with each tap</div>
+              </div>
+            </div>
+            <div class="ap-stepper">
+              <button type="button" class="ap-step" data-ref="proPerTapDec" aria-label="decrease per tap bet">−</button>
+              <div class="ap-input-prefix">
+                <span>€</span>
+                <input data-ref="proPerTapInput" type="text" inputmode="decimal" value="1.00" size="1" aria-label="Per tap bet" />
+              </div>
+              <button type="button" class="ap-step" data-ref="proPerTapInc" aria-label="increase per tap bet">+</button>
+            </div>
+            <div class="pro-presets pro-pertap-presets">
+              ${[0.1, 0.5, 1, 2].map(
+                (v) => `<button type="button" data-preset="${v}">€${v.toFixed(2)}</button>`,
+              ).join("")}
+              <button type="button" data-preset="max">MAX</button>
+            </div>
+          </div>
+
+          <div class="pro-field">
+            <div class="pro-field-head">
+              <span class="pro-field-icon">${SHIELD_CHECK_SVG}</span>
+              <div>
+                <div class="pro-field-title">Max Stake</div>
+                <div class="pro-field-desc">Maximum stake limit for this round</div>
+              </div>
+            </div>
+            <div class="ap-stepper">
+              <button type="button" class="ap-step" data-ref="proMaxDec" aria-label="decrease max stake">−</button>
+              <div class="ap-input-prefix">
+                <span>€</span>
+                <input data-ref="proMaxInput" type="text" inputmode="decimal" value="50.00" size="1" aria-label="Max stake" />
+              </div>
+              <button type="button" class="ap-step" data-ref="proMaxInc" aria-label="increase max stake">+</button>
+            </div>
+            <div class="pro-presets pro-max-presets">
+              ${[10, 25, 50, 100].map(
+                (v) => `<button type="button" data-preset="${v}">€${v}</button>`,
+              ).join("")}
+              <button type="button" data-preset="max">MAX</button>
+            </div>
+          </div>
+
+          <p class="pro-note">Each tap adds the Per Tap Bet to your stake. Stake is capped at the Max Stake limit.</p>
+
+          <div class="pro-footer">
+            <div class="pro-current">
+              <span class="pro-current-label">Current Stake</span>
+              <span class="pro-current-value" data-ref="proCurrentStakeValue">€1.00</span>
+            </div>
+            <button class="action launch pro-start" data-ref="proStart">Start Pro</button>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
   const q = <T extends HTMLElement>(name: string) =>
@@ -360,6 +493,11 @@ export function mount(root: HTMLElement): Refs {
     stakeDec: q<HTMLButtonElement>("stakeDec"),
     stakeInc: q<HTMLButtonElement>("stakeInc"),
     presets: Array.from(root.querySelectorAll<HTMLButtonElement>(".bet .presets [data-preset]")),
+    betPanel: q("betPanel"),
+    proCompact: q("proCompact"),
+    proCompactInitial: q("proCompactInitial"),
+    proCompactPerTap: q("proCompactPerTap"),
+    proCompactMax: q("proCompactMax"),
     action: q<HTMLButtonElement>("action"),
     actionMain: q("actionMain"),
     actionSub: q("actionSub"),
@@ -392,6 +530,22 @@ export function mount(root: HTMLElement): Refs {
     autoplayStakeInc: q<HTMLButtonElement>("autoplayStakeInc"),
     autoplayPresets: Array.from(root.querySelectorAll<HTMLButtonElement>(".ap-presets [data-preset]")),
     autoplayStart: q<HTMLButtonElement>("autoplayStart"),
+    proModal: q("proModal"),
+    proClose: q<HTMLButtonElement>("proClose"),
+    proInitialInput: q<HTMLInputElement>("proInitialInput"),
+    proInitialDec: q<HTMLButtonElement>("proInitialDec"),
+    proInitialInc: q<HTMLButtonElement>("proInitialInc"),
+    proInitialPresets: Array.from(root.querySelectorAll<HTMLButtonElement>(".pro-initial-presets [data-preset]")),
+    proPerTapInput: q<HTMLInputElement>("proPerTapInput"),
+    proPerTapDec: q<HTMLButtonElement>("proPerTapDec"),
+    proPerTapInc: q<HTMLButtonElement>("proPerTapInc"),
+    proPerTapPresets: Array.from(root.querySelectorAll<HTMLButtonElement>(".pro-pertap-presets [data-preset]")),
+    proMaxInput: q<HTMLInputElement>("proMaxInput"),
+    proMaxDec: q<HTMLButtonElement>("proMaxDec"),
+    proMaxInc: q<HTMLButtonElement>("proMaxInc"),
+    proMaxPresets: Array.from(root.querySelectorAll<HTMLButtonElement>(".pro-max-presets [data-preset]")),
+    proCurrentStakeValue: q("proCurrentStakeValue"),
+    proStart: q<HTMLButtonElement>("proStart"),
   };
 }
 

@@ -33,13 +33,21 @@ const MIN_STAKE = 0.5;
 const MAX_STAKE = 50;
 const STAKE_STEP = 1;
 const START_BALANCE = 100;
+/** Default Pro mode values; configurable via the Pro Mode Settings popup. */
 const PRO_MAX_STAKE = 50;
 const PRO_PER_TAP_STAKE = 1;
+const PRO_PERTAP_MIN = 0.1;
+const PRO_PERTAP_MAX = 5;
+const PRO_PERTAP_STEP = 0.1;
+const PRO_MAXSTAKE_MIN = 1;
+const PRO_MAXSTAKE_MAX = 200;
+const PRO_MAXSTAKE_STEP = 5;
 const GAME_NAME = "ROCKET RUSH";
 const HISTORY_KEY = "rr.history";
 const MUTED_KEY = "rr.muted";
 const AUTOPLAY_KEY = "rr.autoplay";
 const SKIN_KEY = "rr.rocketSkin";
+const PRO_SETTINGS_KEY = "rr.proSettings";
 const HISTORY_LIMIT = 200;
 const AUTOPLAY_GAP_MS = 1600;
 const MULTIPLIER_ZONE_CLASSES = ["zone-idle", "zone-low", "zone-high", "zone-jackpot"];
@@ -95,6 +103,7 @@ interface UI {
 }
 
 interface AutoplaySettings { rounds: number; target: number; targetEnabled: boolean; proEnabled: boolean; }
+interface ProSettings { initialStake: number; perTap: number; maxStake: number; }
 interface AutoplayState {
   active: boolean;
   pendingStop: boolean;
@@ -161,6 +170,17 @@ function loadRocketSkin(): RocketSkinId {
   return ROCKET_SKINS.find((s) => s.id === stored)?.id ?? DEFAULT_SKIN_ID;
 }
 
+function loadProSettings(): ProSettings {
+  const raw = readJSON<Partial<ProSettings>>(PRO_SETTINGS_KEY, {});
+  const initialStake =
+    typeof raw.initialStake === "number" && raw.initialStake > 0 ? raw.initialStake : 1;
+  const perTap =
+    typeof raw.perTap === "number" && raw.perTap > 0 ? raw.perTap : PRO_PER_TAP_STAKE;
+  const maxStake =
+    typeof raw.maxStake === "number" && raw.maxStake > 0 ? raw.maxStake : PRO_MAX_STAKE;
+  return { initialStake, perTap, maxStake };
+}
+
 const ui: UI = {
   balance: START_BALANCE,
   stake: 1,
@@ -176,6 +196,8 @@ const ui: UI = {
 
 const autoplaySettings: AutoplaySettings = loadAutoplaySettings();
 ui.autoTarget = autoplaySettings.targetEnabled ? autoplaySettings.target : null;
+
+const proSettings: ProSettings = loadProSettings();
 
 const autoplay: AutoplayState = {
   active: false, pendingStop: false, total: 0, current: 0, timer: null,
@@ -319,12 +341,21 @@ function renderAction(state: RoundState): void {
     btn.disabled = ui.stake > ui.balance;
   }
   refs.actionMain.textContent = main;
-  refs.actionSub.textContent = proSubText(state) || autoplaySubText();
+  refs.actionSub.textContent = autoplaySubText();
+  updateProPanelVisibility(state);
 }
 
-function proSubText(state: RoundState): string {
-  if (!isProRound(state.mode) || state.status !== "running") return "";
-  return `Stake €${fmtMoney(state.stake)} / €${PRO_MAX_STAKE}`;
+function renderProCompact(): void {
+  refs.proCompactInitial.textContent = `€${fmtMoney(proSettings.initialStake)}`;
+  refs.proCompactPerTap.textContent = `+ €${fmtMoney(proSettings.perTap)}`;
+  refs.proCompactMax.textContent = `€${fmtMoney(proSettings.maxStake)}`;
+}
+
+function updateProPanelVisibility(state: RoundState): void {
+  const showCompact = state.status === "running" && isProRound(state.mode);
+  refs.betPanel.hidden = showCompact;
+  refs.proCompact.hidden = !showCompact;
+  if (showCompact) renderProCompact();
 }
 
 function autoplaySubText(): string {
@@ -525,6 +556,87 @@ function onStakeBlur(): void {
   refs.stakeInput.value = formatStake(ui.stake);
 }
 
+type ProField = "initialStake" | "perTap" | "maxStake";
+
+function proFieldBounds(field: ProField): { min: number; max: number } {
+  if (field === "initialStake") {
+    return { min: MIN_STAKE, max: Math.max(MIN_STAKE, Math.min(MAX_STAKE, ui.balance)) };
+  }
+  if (field === "perTap") return { min: PRO_PERTAP_MIN, max: PRO_PERTAP_MAX };
+  return { min: PRO_MAXSTAKE_MIN, max: PRO_MAXSTAKE_MAX };
+}
+
+function setProField(field: ProField, raw: number): void {
+  if (!Number.isFinite(raw)) return;
+  const { min, max } = proFieldBounds(field);
+  const cents = Math.round(raw * 100) / 100;
+  proSettings[field] = Math.max(min, Math.min(max, cents));
+  renderProModalFields();
+}
+
+function onProFieldInput(field: ProField, input: HTMLInputElement): void {
+  const raw = input.value.replace(",", ".");
+  if (raw === "" || raw === "." || raw === "-") return;
+  const n = parseFloat(raw);
+  if (Number.isFinite(n)) setProField(field, n);
+}
+
+function onProFieldBlur(field: ProField, input: HTMLInputElement): void {
+  input.value = formatStake(proSettings[field]);
+}
+
+function onProPresetClick(field: ProField, b: HTMLButtonElement): void {
+  const p = b.dataset.preset ?? "";
+  if (p === "max") setProField(field, proFieldBounds(field).max);
+  else setProField(field, Number(p));
+}
+
+function highlightProPresetGroup(buttons: HTMLButtonElement[], value: number, field: ProField): void {
+  const { max } = proFieldBounds(field);
+  buttons.forEach((b) => {
+    const p = b.dataset.preset ?? "";
+    if (p === "max") b.classList.toggle("active", value === max);
+    else b.classList.toggle("active", Number(p) === value);
+  });
+}
+
+function renderProModalFields(): void {
+  if (document.activeElement !== refs.proInitialInput) {
+    refs.proInitialInput.value = formatStake(proSettings.initialStake);
+  }
+  if (document.activeElement !== refs.proPerTapInput) {
+    refs.proPerTapInput.value = formatStake(proSettings.perTap);
+  }
+  if (document.activeElement !== refs.proMaxInput) {
+    refs.proMaxInput.value = formatStake(proSettings.maxStake);
+  }
+  refs.proCurrentStakeValue.textContent = `€${fmtMoney(proSettings.initialStake)}`;
+  highlightProPresetGroup(refs.proInitialPresets, proSettings.initialStake, "initialStake");
+  highlightProPresetGroup(refs.proPerTapPresets, proSettings.perTap, "perTap");
+  highlightProPresetGroup(refs.proMaxPresets, proSettings.maxStake, "maxStake");
+}
+
+function openProModal(): void {
+  renderProModalFields();
+  openOverlay(refs.proModal);
+}
+
+/** Saves the configured Pro settings, applies the initial stake, and
+ * immediately launches a Pro round using the existing Pro mode logic. */
+function startProFromModal(): void {
+  if (proSettings.maxStake < proSettings.initialStake) {
+    proSettings.maxStake = proSettings.initialStake;
+  }
+  writeJSON(PRO_SETTINGS_KEY, proSettings);
+  closeAllOverlays();
+  ui.mode = "pro";
+  setStake(proSettings.initialStake);
+  proSettings.initialStake = ui.stake;
+  renderTabs();
+  if (ui.stake > ui.balance) return;
+  launchRound();
+}
+
 function pickRoundsOption(n: number): number {
   let best: number = AUTOPLAY_ROUNDS_OPTIONS[0];
   let bestDelta = Math.abs(n - best);
@@ -588,6 +700,12 @@ function onTabAutoClick(): void {
   openAutoplayModal();
 }
 
+function onTabProClick(): void {
+  if (autoplay.active) return;
+  if (engine.getState().status === "running") return;
+  openProModal();
+}
+
 function setMuted(muted: boolean): void {
   ui.muted = muted;
   writeJSON(MUTED_KEY, muted);
@@ -619,6 +737,7 @@ function closeAllOverlays(): void {
   refs.historySheet.hidden = true;
   refs.autoplayModal.hidden = true;
   refs.skinModal.hidden = true;
+  refs.proModal.hidden = true;
 }
 
 function openOverlay(el: HTMLElement): void {
@@ -664,7 +783,7 @@ function initEvents(r: Refs): void {
     if (e.key === "Enter") (e.target as HTMLInputElement).blur();
   });
   r.tabClassic.addEventListener("click", () => setMode("classic"));
-  r.tabPro.addEventListener("click", () => setMode("pro"));
+  r.tabPro.addEventListener("click", onTabProClick);
   r.tabAuto.addEventListener("click", onTabAutoClick);
   r.action.addEventListener("click", onAction);
   r.btnStopAutoplay.addEventListener("click", requestStopAutoplay);
@@ -673,6 +792,49 @@ function initEvents(r: Refs): void {
     if (e.target === r.autoplayModal) closeAllOverlays();
   });
   r.autoplayStart.addEventListener("click", startAutoplayFromModal);
+  r.proClose.addEventListener("click", closeAllOverlays);
+  r.proModal.addEventListener("click", (e) => {
+    if (e.target === r.proModal) closeAllOverlays();
+  });
+  r.proInitialDec.addEventListener("click", () =>
+    setProField("initialStake", proSettings.initialStake - STAKE_STEP),
+  );
+  r.proInitialInc.addEventListener("click", () =>
+    setProField("initialStake", proSettings.initialStake + STAKE_STEP),
+  );
+  r.proInitialInput.addEventListener("input", () => onProFieldInput("initialStake", r.proInitialInput));
+  r.proInitialInput.addEventListener("blur", () => onProFieldBlur("initialStake", r.proInitialInput));
+  r.proInitialInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+  });
+  r.proInitialPresets.forEach((b) =>
+    b.addEventListener("click", () => onProPresetClick("initialStake", b)),
+  );
+  r.proPerTapDec.addEventListener("click", () =>
+    setProField("perTap", proSettings.perTap - PRO_PERTAP_STEP),
+  );
+  r.proPerTapInc.addEventListener("click", () =>
+    setProField("perTap", proSettings.perTap + PRO_PERTAP_STEP),
+  );
+  r.proPerTapInput.addEventListener("input", () => onProFieldInput("perTap", r.proPerTapInput));
+  r.proPerTapInput.addEventListener("blur", () => onProFieldBlur("perTap", r.proPerTapInput));
+  r.proPerTapInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+  });
+  r.proPerTapPresets.forEach((b) => b.addEventListener("click", () => onProPresetClick("perTap", b)));
+  r.proMaxDec.addEventListener("click", () =>
+    setProField("maxStake", proSettings.maxStake - PRO_MAXSTAKE_STEP),
+  );
+  r.proMaxInc.addEventListener("click", () =>
+    setProField("maxStake", proSettings.maxStake + PRO_MAXSTAKE_STEP),
+  );
+  r.proMaxInput.addEventListener("input", () => onProFieldInput("maxStake", r.proMaxInput));
+  r.proMaxInput.addEventListener("blur", () => onProFieldBlur("maxStake", r.proMaxInput));
+  r.proMaxInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+  });
+  r.proMaxPresets.forEach((b) => b.addEventListener("click", () => onProPresetClick("maxStake", b)));
+  r.proStart.addEventListener("click", startProFromModal);
   r.zones.addEventListener("pointerdown", onZoneTap);
   r.infoToggleClassic.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
@@ -752,7 +914,7 @@ function launchRound(): void {
     stake: ui.stake,
     mode,
     autoTarget: useAutoTarget ? (ui.autoTarget as number) : undefined,
-    maxStake: isPro ? Math.max(ui.stake, PRO_MAX_STAKE) : undefined,
+    maxStake: isPro ? Math.max(ui.stake, proSettings.maxStake) : undefined,
   });
 }
 
@@ -764,8 +926,8 @@ function openAutoplayModal(): void {
   refs.autoplayProEnabled.checked = autoplaySettings.proEnabled;
   refs.autoplayProInfoText.innerHTML =
     `<b>Pro:</b> every <b>10 taps</b> adds <b>+0.5×</b> to the multiplier. ` +
-    `Each tap commits <b>€${fmtMoney(PRO_PER_TAP_STAKE)}</b> to your stake. ` +
-    `Stake cap <b>€${fmtMoney(PRO_MAX_STAKE)}</b>.`;
+    `Each tap commits <b>€${fmtMoney(proSettings.perTap)}</b> to your stake. ` +
+    `Stake cap <b>€${fmtMoney(proSettings.maxStake)}</b>.`;
   hideAutoplayInfo();
   applyTargetEnabledUI();
   openOverlay(refs.autoplayModal);
@@ -848,7 +1010,7 @@ function onZoneTap(e: PointerEvent): void {
   let addStake = 0;
   if (isProRound(s.mode)) {
     const room = Math.max(0, s.maxStake - s.stake);
-    addStake = Math.min(PRO_PER_TAP_STAKE, room, ui.balance);
+    addStake = Math.min(proSettings.perTap, room, ui.balance);
   }
   engine.tap({ addStake });
   if (addStake > 0) {
@@ -884,8 +1046,8 @@ function tapHintAnchorFor(mode: "classic" | "pro"): HTMLElement {
 function tapHintContentFor(mode: "classic" | "pro"): string {
   if (mode === "pro") {
     return `<b>Pro:</b> every <b>10 taps</b> adds <b>+0.5×</b> to the multiplier. ` +
-      `Each tap commits <b>€${fmtMoney(PRO_PER_TAP_STAKE)}</b> to your stake. ` +
-      `Stake cap <b>€${fmtMoney(PRO_MAX_STAKE)}</b>.`;
+      `Each tap commits <b>€${fmtMoney(proSettings.perTap)}</b> to your stake. ` +
+      `Stake cap <b>€${fmtMoney(proSettings.maxStake)}</b>.`;
   }
   return `<b>Classic:</b> every <b>10 taps</b> adds <b>+0.5×</b> to the multiplier. ` +
     `Cash out before the rocket crashes.`;

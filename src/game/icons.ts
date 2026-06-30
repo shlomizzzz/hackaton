@@ -58,3 +58,29 @@ export const ROCKET_SVG = `
   <circle cx="15" cy="9" r="1.2"/>
   <path d="M9 15l-3 3"/>
 </svg>`;
+
+export const COINS_SVG = `
+<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="9" cy="6" rx="6" ry="2.5"/>
+  <path d="M3 6v5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6"/>
+  <path d="M3 11v5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-5"/>
+  <path d="M15 9.2c2.9.3 6 1.3 6 2.6v5c0 1.4-2.7 2.5-6 2.5-1.5 0-2.9-.2-4-.6"/>
+</svg>`;
+
+export const TAP_SVG = `
+<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M9 12.5V6a1.5 1.5 0 013 0v5"/>
+  <path d="M12 11V4.5a1.5 1.5 0 013 0V11"/>
+  <path d="M15 11V6.5a1.5 1.5 0 013 0V13"/>
+  <path d="M9 12.5l-1.6-1.6a1.4 1.4 0 00-2 2L8.5 16c1 2.4 3 4 5.8 4 3.3 0 5.7-2.5 5.7-6v-1"/>
+  <path d="M16.5 3.5l1.3-1.3M19 6h2M16.5 8.5l1.3 1.3"/>
+</svg>`;
+
+export const SHIELD_CHECK_SVG = `
+<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z"/>
+  <path d="M9 12l2 2 4-4"/>
+</svg>`;
