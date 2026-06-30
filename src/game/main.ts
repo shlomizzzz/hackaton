@@ -372,20 +372,29 @@ function renderClassicCompact(state: RoundState): void {
   refs.classicCompactStake.textContent = `€${fmtMoney(stake)}`;
 }
 
-function renderAutoplayCompact(): void {
+function renderAutoplayCompact(state: RoundState): void {
   // Stake/target/Pro fields are fixed configuration for the session (set
   // once at Start Autoplay), so they're read directly from the settings
   // that drove launchRound() — none of this is reset by stopAutoplay(),
   // so it stays accurate through the persisted idle period after the
-  // session ends. Rounds is the one *live* value: it must reflect rounds
+  // session ends. Rounds is one *live* value: it must reflect rounds
   // remaining (total minus completed-so-far), not the static configured
   // total, so it counts down as onAutoplayRoundEnded() increments
   // autoplay.current after each round. stopAutoplay() resets both
   // autoplay.total and autoplay.current to 0, so this naturally settles
   // on 0 once the session ends (manually stopped or finished), matching
   // the expected "Rounds: 0, Autoplay stopped" end state.
+  //
+  // Stake is the other live value during a Pro-enabled Autoplay round:
+  // it must track the same tap-accumulated state.stake that drives the
+  // standalone Pro compact view (renderProCompact), not the static
+  // ui.stake used to launch the round — otherwise it never grows as the
+  // user taps. For Classic Autoplay (or before/after a Pro-auto round),
+  // there's no tap-driven stake, so ui.stake (the configured session
+  // stake) is the correct, stable value to show.
   const roundsRemaining = Math.max(0, autoplay.total - autoplay.current);
-  refs.autoplayCompactStake.textContent = `€${fmtMoney(ui.stake)}`;
+  const liveStake = isProRound(state.mode) ? state.stake : ui.stake;
+  refs.autoplayCompactStake.textContent = `€${fmtMoney(liveStake)}`;
   refs.autoplayCompactRounds.textContent = String(roundsRemaining);
   refs.autoplayCompactTarget.textContent =
     ui.autoTarget !== null ? `${ui.autoTarget.toFixed(2)}×` : "Off";
@@ -440,7 +449,7 @@ function updateProPanelVisibility(state: RoundState): void {
   refs.autoplayCompact.hidden = !showAutoplayCompact;
   if (showProCompact) renderProCompact(state);
   if (showClassicCompact) renderClassicCompact(state);
-  if (showAutoplayCompact) renderAutoplayCompact();
+  if (showAutoplayCompact) renderAutoplayCompact(state);
 }
 
 function autoplaySubText(): string {
