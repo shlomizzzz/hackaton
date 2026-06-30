@@ -42,6 +42,12 @@ body {
 }
 .icon-btn:hover { background: rgba(255,255,255,0.08); }
 .icon-btn.mute { color: var(--muted); }
+.icon-btn.cheat { color: var(--muted); }
+.icon-btn.cheat.on {
+  color: var(--green); border-color: var(--green);
+  background: rgba(74,222,128,0.12);
+  box-shadow: 0 0 10px rgba(74,222,128,0.55), 0 0 2px rgba(74,222,128,0.9);
+}
 .lobby-btn {
   display: inline-flex; align-items: center; gap: 4px;
   background: rgba(255,255,255,0.04); border: 1px solid var(--line);

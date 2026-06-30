@@ -84,3 +84,13 @@ export const SHIELD_CHECK_SVG = `
   <path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z"/>
   <path d="M9 12l2 2 4-4"/>
 </svg>`;
+
+export const WAND_SVG = `
+<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4.5 19.5L13 11"/>
+  <rect x="11.6" y="9.1" width="2.6" height="2.6" rx="0.4" transform="rotate(45 12.9 10.4)"/>
+  <path d="M18.5 4l0.7 1.8 1.8 0.7-1.8 0.7-0.7 1.8-0.7-1.8L16 6.5l1.8-0.7z" fill="currentColor" stroke="none"/>
+  <path d="M9.5 3l0.5 1.3L11.3 4.8 10 5.3 9.5 6.6 9 5.3 7.7 4.8 9 4.3z" fill="currentColor" stroke="none"/>
+  <path d="M19 12.5l0.45 1.05 1.05 0.45-1.05 0.45L19 15.5l-0.45-1.05L17.5 14l1.05-0.45z" fill="currentColor" stroke="none"/>
+</svg>`;

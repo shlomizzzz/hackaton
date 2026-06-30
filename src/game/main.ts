@@ -352,7 +352,14 @@ function renderProCompact(): void {
 }
 
 function updateProPanelVisibility(state: RoundState): void {
-  const showCompact = state.status === "running" && isProRound(state.mode);
+  // Stay on the compact Pro view for as long as the Pro tab is the active
+  // selection (configured, running, or just finished) — it only reverts to
+  // the normal stake selector once the user switches to Classic mode.
+  // Autoplay's own pro-auto running rounds are handled by the second clause
+  // independently, since autoplay never changes `ui.mode`.
+  const proTabActive = !autoplay.active && ui.mode === "pro";
+  const runningProRound = state.status === "running" && isProRound(state.mode);
+  const showCompact = proTabActive || runningProRound;
   refs.betPanel.hidden = showCompact;
   refs.proCompact.hidden = !showCompact;
   if (showCompact) renderProCompact();
@@ -712,6 +719,26 @@ function setMuted(muted: boolean): void {
   setMuteIcon(refs.btnMute, muted);
 }
 
+/**
+ * Debug/demo-only override. Not persisted (in-memory only), so it always
+ * resets to OFF on page refresh, per spec. When ON, forces the active
+ * round's crash point to Infinity via the engine's existing
+ * setDebugCrashPoint() hook, so the round can never reach its crash
+ * threshold — no changes to the crash math/RNG/engine internals. The
+ * displayed multiplier keeps climbing as normal; the game's existing
+ * rocket-position/heat/parallax curves already clamp once the multiplier
+ * passes the highest supported tier (see SPACE_STRIP_CHECKPOINTS), so the
+ * visuals settle there even though the round keeps running until cashed out.
+ */
+let cheatOn = false;
+
+function setCheat(on: boolean): void {
+  cheatOn = on;
+  refs.btnCheat.classList.toggle("on", cheatOn);
+  refs.btnCheat.setAttribute("aria-pressed", String(cheatOn));
+  engine.setDebugCrashPoint(cheatOn ? Infinity : null);
+}
+
 function toggleRecentList(): void {
   ui.recentExpanded = !ui.recentExpanded;
   refs.recentList.hidden = !ui.recentExpanded;
@@ -850,6 +877,7 @@ function initEvents(r: Refs): void {
     hideAllTapHints();
   }, true);
   r.btnMute.addEventListener("click", () => setMuted(!ui.muted));
+  r.btnCheat.addEventListener("click", () => setCheat(!cheatOn));
   r.btnHelp.addEventListener("click", () => openOverlay(r.helpModal));
   r.helpClose.addEventListener("click", closeAllOverlays);
   r.helpModal.addEventListener("click", (e) => {

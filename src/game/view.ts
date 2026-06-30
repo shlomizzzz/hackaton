@@ -9,6 +9,7 @@ import {
   SOUND_OFF_SVG,
   SOUND_ON_SVG,
   TAP_SVG,
+  WAND_SVG,
 } from "./icons";
 import { ROCKET_SKINS } from "./rockets";
 
@@ -56,6 +57,7 @@ export interface Refs {
   btnHistory: HTMLButtonElement;
   btnMute: HTMLButtonElement;
   btnSkin: HTMLButtonElement;
+  btnCheat: HTMLButtonElement;
   btnLobby: HTMLButtonElement;
   helpModal: HTMLElement;
   helpClose: HTMLButtonElement;
@@ -108,6 +110,7 @@ export function mount(root: HTMLElement): Refs {
         <span class="lobby-chev">‹</span><span class="lobby-text">Lobby</span>
       </button>
       <div class="hdr-icons">
+        <button class="icon-btn cheat" data-ref="btnCheat" aria-label="Cheat tool" aria-pressed="false" title="Cheat tool (debug)">${WAND_SVG}</button>
         <button class="icon-btn" data-ref="btnSkin" aria-label="Choose rocket">${ROCKET_SVG}</button>
         <button class="icon-btn mute" data-ref="btnMute" aria-label="Mute">${SOUND_ON_SVG}</button>
         <button class="icon-btn" data-ref="btnHelp" aria-label="How to play">${HELP_SVG}</button>
@@ -505,6 +508,7 @@ export function mount(root: HTMLElement): Refs {
     btnHistory: q<HTMLButtonElement>("btnHistory"),
     btnMute: q<HTMLButtonElement>("btnMute"),
     btnSkin: q<HTMLButtonElement>("btnSkin"),
+    btnCheat: q<HTMLButtonElement>("btnCheat"),
     btnLobby: q<HTMLButtonElement>("btnLobby"),
     helpModal: q("helpModal"),
     helpClose: q<HTMLButtonElement>("helpClose"),
