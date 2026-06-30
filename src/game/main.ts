@@ -367,26 +367,49 @@ function renderClassicCompact(state: RoundState): void {
   refs.classicCompactStake.textContent = `€${fmtMoney(stake)}`;
 }
 
+function renderAutoplayCompact(): void {
+  // All of these are fixed configuration for the session (set once at
+  // Start Autoplay) rather than per-round/live values, so they're read
+  // directly from the settings that drove launchRound() — none of this
+  // is reset by stopAutoplay(), so it stays accurate through the
+  // persisted idle period after the session ends.
+  refs.autoplayCompactStake.textContent = `€${fmtMoney(ui.stake)}`;
+  refs.autoplayCompactRounds.textContent = String(autoplaySettings.rounds);
+  refs.autoplayCompactTarget.textContent =
+    ui.autoTarget !== null ? `${ui.autoTarget.toFixed(2)}×` : "Off";
+  const proOn = autoplaySettings.proEnabled;
+  refs.autoplayCompactPerTapWrap.hidden = !proOn;
+  refs.autoplayCompactMaxWrap.hidden = !proOn;
+  if (proOn) {
+    refs.autoplayCompactPerTap.textContent = `+ €${fmtMoney(proSettings.perTap)}`;
+    refs.autoplayCompactMax.textContent = `€${fmtMoney(proSettings.maxStake)}`;
+  }
+}
+
 function updateProPanelVisibility(state: RoundState): void {
+  // Autoplay's compact view takes priority whenever a session has been
+  // started (see autoplaySessionStarted) — it stays up through every round
+  // in the session and through the idle period after it ends, only
+  // resetting when the Autoplay tab is tapped again (onTabAutoClick()).
+  // This also covers Autoplay's Pro-enabled rounds (engine mode
+  // "pro"/"pro-auto"), so the manual Pro/Classic compacts below no longer
+  // need their own Autoplay special-casing.
+  const showAutoplayCompact = autoplaySessionStarted;
+
   // Stay on the compact Pro view for as long as the Pro tab is the active
-  // selection (configured, running, or just finished) — it only reverts to
-  // the normal stake selector once the user switches to Classic mode.
-  // Autoplay's own pro-auto running rounds are handled by the second clause
-  // independently, since autoplay never changes `ui.mode`.
-  const proTabActive = !autoplay.active && ui.mode === "pro";
-  const runningProRound = state.status === "running" && isProRound(state.mode);
-  const showProCompact = proTabActive || runningProRound;
+  // manual selection (configured, running, or just finished) — it only
+  // reverts to the normal stake selector once the user switches to
+  // Classic mode. Excluded whenever Autoplay's compact view is showing.
+  const showProCompact = !showAutoplayCompact && !autoplay.active && ui.mode === "pro";
 
   // Classic mirrors the same persistence rule: once a Classic round has
   // been launched, the compact Stake card stays up (through the round and
   // afterward) until the Classic tab is explicitly tapped again, which
-  // resets `classicRoundStarted` in setMode(). Autoplay is always excluded
-  // here, even though its non-target/non-pro rounds also use the engine
-  // mode "classic" internally — Autoplay's own bet panel display is
-  // untouched.
-  const showClassicCompact = !autoplay.active && ui.mode === "classic" && classicRoundStarted;
+  // resets `classicRoundStarted` in setMode().
+  const showClassicCompact =
+    !showAutoplayCompact && !autoplay.active && ui.mode === "classic" && classicRoundStarted;
 
-  const showCompact = showProCompact || showClassicCompact;
+  const showCompact = showAutoplayCompact || showProCompact || showClassicCompact;
 
   // The legacy stake panel is fully detached from the DOM (not just
   // CSS-hidden) while a compact view is active. `.bet` declares its own
@@ -402,8 +425,10 @@ function updateProPanelVisibility(state: RoundState): void {
   }
   refs.proCompact.hidden = !showProCompact;
   refs.classicCompact.hidden = !showClassicCompact;
+  refs.autoplayCompact.hidden = !showAutoplayCompact;
   if (showProCompact) renderProCompact(state);
   if (showClassicCompact) renderClassicCompact(state);
+  if (showAutoplayCompact) renderAutoplayCompact();
 }
 
 function autoplaySubText(): string {
@@ -746,6 +771,7 @@ function setMode(m: RoundMode): void {
 function onTabAutoClick(): void {
   if (autoplay.active) return;
   if (engine.getState().status === "running") return;
+  autoplaySessionStarted = false;
   openAutoplayModal();
 }
 
@@ -783,6 +809,15 @@ let cheatOn = false;
  * explicitly tapped again (see setMode()).
  */
 let classicRoundStarted = false;
+
+/**
+ * Mirrors classicRoundStarted/ui.mode==="pro": set true the moment an
+ * Autoplay session is started, stays true through every round in that
+ * session and through the idle period after it finishes/is stopped, and
+ * only resets (bringing back the full betting UI under the Autoplay tab)
+ * when the user taps the Autoplay tab again (see onTabAutoClick()).
+ */
+let autoplaySessionStarted = false;
 
 function setCheat(on: boolean): void {
   cheatOn = on;
@@ -1050,6 +1085,7 @@ function startAutoplayFromModal(): void {
   autoplay.pendingStop = false;
   autoplay.total = rounds;
   autoplay.current = 0;
+  autoplaySessionStarted = true;
   closeAllOverlays();
   renderTabs();
   renderAction(engine.getState());

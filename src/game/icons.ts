@@ -94,3 +94,12 @@ export const WAND_SVG = `
   <path d="M9.5 3l0.5 1.3L11.3 4.8 10 5.3 9.5 6.6 9 5.3 7.7 4.8 9 4.3z" fill="currentColor" stroke="none"/>
   <path d="M19 12.5l0.45 1.05 1.05 0.45-1.05 0.45L19 15.5l-0.45-1.05L17.5 14l1.05-0.45z" fill="currentColor" stroke="none"/>
 </svg>`;
+
+export const REFRESH_SVG = `
+<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M19.5 9.5A8 8 0 005.6 6.3L4 8"/>
+  <path d="M4 4v4h4"/>
+  <path d="M4.5 14.5A8 8 0 0018.4 17.7L20 16"/>
+  <path d="M20 20v-4h-4"/>
+</svg>`;

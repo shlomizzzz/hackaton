@@ -863,18 +863,21 @@ body {
 
 .pro-compact {
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-  padding: 10px 6px; display: grid; grid-template-columns: repeat(3, 1fr);
+  padding: 10px 6px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
   gap: 4px; flex-shrink: 0; text-align: center; min-width: 0;
 }
 .pro-compact[hidden] { display: none; }
 .pro-compact > div { display: grid; gap: 4px; min-width: 0; padding: 0 6px; }
 .pro-compact > div:not(:first-child) { border-left: 1px solid var(--line); }
+.pro-compact > div[hidden] { display: none; }
 .pro-compact .lbl {
   font-size: 10px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase;
   display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap;
 }
 .pro-compact .lbl .icon { color: var(--violet); width: 14px; height: 14px; flex-shrink: 0; display: inline-flex; }
 .pro-compact .lbl .icon svg { width: 14px; height: 14px; }
+.pro-compact .lbl .icon.icon-blue { color: var(--blue); }
+.pro-compact .lbl .icon.icon-amber { color: var(--amber); }
 .pro-compact .val { font-size: 14px; font-weight: 800; color: var(--green); font-variant-numeric: tabular-nums; }
 
 .classic-compact {

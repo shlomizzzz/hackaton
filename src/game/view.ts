@@ -4,6 +4,7 @@ import {
   COINS_SVG,
   HELP_SVG,
   HISTORY_SVG,
+  REFRESH_SVG,
   ROCKET_SVG,
   SHIELD_CHECK_SVG,
   SOUND_OFF_SVG,
@@ -52,6 +53,14 @@ export interface Refs {
   proCompactMax: HTMLElement;
   classicCompact: HTMLElement;
   classicCompactStake: HTMLElement;
+  autoplayCompact: HTMLElement;
+  autoplayCompactStake: HTMLElement;
+  autoplayCompactRounds: HTMLElement;
+  autoplayCompactTarget: HTMLElement;
+  autoplayCompactPerTapWrap: HTMLElement;
+  autoplayCompactPerTap: HTMLElement;
+  autoplayCompactMaxWrap: HTMLElement;
+  autoplayCompactMax: HTMLElement;
   action: HTMLButtonElement;
   actionMain: HTMLElement;
   actionSub: HTMLElement;
@@ -251,6 +260,29 @@ export function mount(root: HTMLElement): Refs {
     <div class="classic-compact" data-ref="classicCompact" hidden>
       <span class="lbl"><span class="icon">${COINS_SVG}</span>Stake</span>
       <span class="val" data-ref="classicCompactStake">€1.00</span>
+    </div>
+
+    <div class="pro-compact" data-ref="autoplayCompact" hidden>
+      <div>
+        <span class="lbl"><span class="icon">${COINS_SVG}</span>Stake</span>
+        <span class="val" data-ref="autoplayCompactStake">€1.00</span>
+      </div>
+      <div>
+        <span class="lbl"><span class="icon icon-blue">${REFRESH_SVG}</span>Rounds</span>
+        <span class="val" data-ref="autoplayCompactRounds">25</span>
+      </div>
+      <div>
+        <span class="lbl"><span class="icon icon-amber">${SHIELD_CHECK_SVG}</span>Auto Cash Out</span>
+        <span class="val" data-ref="autoplayCompactTarget">2.00×</span>
+      </div>
+      <div data-ref="autoplayCompactPerTapWrap" hidden>
+        <span class="lbl"><span class="icon">${TAP_SVG}</span>Per Tap</span>
+        <span class="val" data-ref="autoplayCompactPerTap">+ €1.00</span>
+      </div>
+      <div data-ref="autoplayCompactMaxWrap" hidden>
+        <span class="lbl"><span class="icon">${SHIELD_CHECK_SVG}</span>Max Stake</span>
+        <span class="val" data-ref="autoplayCompactMax">€50.00</span>
+      </div>
     </div>
 
     <button class="action launch" data-ref="action">
@@ -510,6 +542,14 @@ export function mount(root: HTMLElement): Refs {
     proCompactMax: q("proCompactMax"),
     classicCompact: q("classicCompact"),
     classicCompactStake: q("classicCompactStake"),
+    autoplayCompact: q("autoplayCompact"),
+    autoplayCompactStake: q("autoplayCompactStake"),
+    autoplayCompactRounds: q("autoplayCompactRounds"),
+    autoplayCompactTarget: q("autoplayCompactTarget"),
+    autoplayCompactPerTapWrap: q("autoplayCompactPerTapWrap"),
+    autoplayCompactPerTap: q("autoplayCompactPerTap"),
+    autoplayCompactMaxWrap: q("autoplayCompactMaxWrap"),
+    autoplayCompactMax: q("autoplayCompactMax"),
     action: q<HTMLButtonElement>("action"),
     actionMain: q("actionMain"),
     actionSub: q("actionSub"),
