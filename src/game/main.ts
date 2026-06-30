@@ -331,17 +331,22 @@ function renderAction(state: RoundState): void {
     btn.classList.add("cashout");
     const payout = state.stakeBasis * state.multiplier;
     main = `Cash Out · €${fmtMoney(payout)}`;
+    // Match Classic/Pro exactly while a round is live: no extra subtext
+    // line under the Cash Out button. The round-progress text only makes
+    // sense between rounds (see the else-if branch below).
+    refs.actionSub.textContent = "";
   } else if (autoplay.active) {
     btn.classList.add("launch");
     main = "Next round…";
     btn.disabled = true;
+    refs.actionSub.textContent = autoplaySubText();
   } else {
     btn.classList.add("launch");
     main = "Launch";
     btn.disabled = ui.stake > ui.balance;
+    refs.actionSub.textContent = autoplaySubText();
   }
   refs.actionMain.textContent = main;
-  refs.actionSub.textContent = autoplaySubText();
   updateProPanelVisibility(state);
 }
 
