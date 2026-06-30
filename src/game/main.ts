@@ -368,13 +368,20 @@ function renderClassicCompact(state: RoundState): void {
 }
 
 function renderAutoplayCompact(): void {
-  // All of these are fixed configuration for the session (set once at
-  // Start Autoplay) rather than per-round/live values, so they're read
-  // directly from the settings that drove launchRound() — none of this
-  // is reset by stopAutoplay(), so it stays accurate through the
-  // persisted idle period after the session ends.
+  // Stake/target/Pro fields are fixed configuration for the session (set
+  // once at Start Autoplay), so they're read directly from the settings
+  // that drove launchRound() — none of this is reset by stopAutoplay(),
+  // so it stays accurate through the persisted idle period after the
+  // session ends. Rounds is the one *live* value: it must reflect rounds
+  // remaining (total minus completed-so-far), not the static configured
+  // total, so it counts down as onAutoplayRoundEnded() increments
+  // autoplay.current after each round. stopAutoplay() resets both
+  // autoplay.total and autoplay.current to 0, so this naturally settles
+  // on 0 once the session ends (manually stopped or finished), matching
+  // the expected "Rounds: 0, Autoplay stopped" end state.
+  const roundsRemaining = Math.max(0, autoplay.total - autoplay.current);
   refs.autoplayCompactStake.textContent = `€${fmtMoney(ui.stake)}`;
-  refs.autoplayCompactRounds.textContent = String(autoplaySettings.rounds);
+  refs.autoplayCompactRounds.textContent = String(roundsRemaining);
   refs.autoplayCompactTarget.textContent =
     ui.autoTarget !== null ? `${ui.autoTarget.toFixed(2)}×` : "Off";
   const proOn = autoplaySettings.proEnabled;
