@@ -50,6 +50,8 @@ export interface Refs {
   proCompactInitial: HTMLElement;
   proCompactPerTap: HTMLElement;
   proCompactMax: HTMLElement;
+  classicCompact: HTMLElement;
+  classicCompactStake: HTMLElement;
   action: HTMLButtonElement;
   actionMain: HTMLElement;
   actionSub: HTMLElement;
@@ -244,6 +246,11 @@ export function mount(root: HTMLElement): Refs {
         <span class="lbl"><span class="icon">${SHIELD_CHECK_SVG}</span>Max Stake</span>
         <span class="val" data-ref="proCompactMax">€50.00</span>
       </div>
+    </div>
+
+    <div class="classic-compact" data-ref="classicCompact" hidden>
+      <span class="lbl"><span class="icon">${COINS_SVG}</span>Stake</span>
+      <span class="val" data-ref="classicCompactStake">€1.00</span>
     </div>
 
     <button class="action launch" data-ref="action">
@@ -501,6 +508,8 @@ export function mount(root: HTMLElement): Refs {
     proCompactInitial: q("proCompactInitial"),
     proCompactPerTap: q("proCompactPerTap"),
     proCompactMax: q("proCompactMax"),
+    classicCompact: q("classicCompact"),
+    classicCompactStake: q("classicCompactStake"),
     action: q<HTMLButtonElement>("action"),
     actionMain: q("actionMain"),
     actionSub: q("actionSub"),

@@ -358,6 +358,15 @@ function renderProCompact(state: RoundState): void {
   refs.proCompactMax.textContent = `€${fmtMoney(proSettings.maxStake)}`;
 }
 
+function renderClassicCompact(state: RoundState): void {
+  // Mirrors renderProCompact(): once a Classic round has been launched,
+  // state.stake holds that round's active stake for the round and through
+  // the idle period afterward (state.stake is fixed for the round's
+  // lifetime in Classic — there's no tap-driven stake growth like Pro).
+  const stake = state.mode === "classic" ? state.stake : ui.stake;
+  refs.classicCompactStake.textContent = `€${fmtMoney(stake)}`;
+}
+
 function updateProPanelVisibility(state: RoundState): void {
   // Stay on the compact Pro view for as long as the Pro tab is the active
   // selection (configured, running, or just finished) — it only reverts to
@@ -366,10 +375,21 @@ function updateProPanelVisibility(state: RoundState): void {
   // independently, since autoplay never changes `ui.mode`.
   const proTabActive = !autoplay.active && ui.mode === "pro";
   const runningProRound = state.status === "running" && isProRound(state.mode);
-  const showCompact = proTabActive || runningProRound;
+  const showProCompact = proTabActive || runningProRound;
+
+  // Classic mirrors the same persistence rule: once a Classic round has
+  // been launched, the compact Stake card stays up (through the round and
+  // afterward) until the Classic tab is explicitly tapped again, which
+  // resets `classicRoundStarted` in setMode(). Autoplay is always excluded
+  // here, even though its non-target/non-pro rounds also use the engine
+  // mode "classic" internally — Autoplay's own bet panel display is
+  // untouched.
+  const showClassicCompact = !autoplay.active && ui.mode === "classic" && classicRoundStarted;
+
+  const showCompact = showProCompact || showClassicCompact;
 
   // The legacy stake panel is fully detached from the DOM (not just
-  // CSS-hidden) while Pro mode is active. `.bet` declares its own
+  // CSS-hidden) while a compact view is active. `.bet` declares its own
   // `display: grid`, which has the same specificity as the browser's
   // built-in `[hidden] { display: none }` rule — author CSS wins that tie,
   // so toggling the `hidden` attribute alone silently failed to hide it
@@ -380,8 +400,10 @@ function updateProPanelVisibility(state: RoundState): void {
   } else if (!refs.betPanel.isConnected) {
     refs.proCompact.before(refs.betPanel);
   }
-  refs.proCompact.hidden = !showCompact;
-  if (showCompact) renderProCompact(state);
+  refs.proCompact.hidden = !showProCompact;
+  refs.classicCompact.hidden = !showClassicCompact;
+  if (showProCompact) renderProCompact(state);
+  if (showClassicCompact) renderClassicCompact(state);
 }
 
 function autoplaySubText(): string {
@@ -715,6 +737,7 @@ function setMode(m: RoundMode): void {
   if (engine.getState().status === "running") return;
   if (autoplay.active) return;
   ui.mode = m;
+  if (m === "classic") classicRoundStarted = false;
   renderTabs();
   renderAction(engine.getState());
   showTapHintOnce(m);
@@ -750,6 +773,16 @@ function setMuted(muted: boolean): void {
  * visuals settle there even though the round keeps running until cashed out.
  */
 let cheatOn = false;
+
+/**
+ * Tracks whether the user has launched a Classic round since the last time
+ * they tapped the Classic tab. Drives the Classic compact stake card the
+ * same way `ui.mode === "pro"` drives the Pro compact view: it flips on at
+ * launch and persists through the round and the idle period afterward,
+ * only resetting (back to the full stake selector) when the Classic tab is
+ * explicitly tapped again (see setMode()).
+ */
+let classicRoundStarted = false;
 
 function setCheat(on: boolean): void {
   cheatOn = on;
@@ -957,6 +990,7 @@ function launchRound(): void {
     useAutoTarget && isProAutoplay ? "pro-auto" :
     useAutoTarget ? "auto" :
     isPro ? "pro" : "classic";
+  if (mode === "classic" && !autoplay.active) classicRoundStarted = true;
   engine.launch({
     stake: ui.stake,
     mode,
