@@ -1042,6 +1042,18 @@ function onAction(): void {
     return;
   }
   if (autoplay.active) return;
+  // Autoplay is the persisted selected section (set in
+  // startAutoplayFromModal(), cleared only by tapping Classic/Pro/Autoplay
+  // — see setMode()/onTabProClick()/onTabAutoClick()) but currently
+  // stopped: the button still reads "Launch" (renderAction() is
+  // unchanged), but tapping it must behave like tapping the Autoplay tab
+  // — reopen the existing Autoplay Settings popup — rather than silently
+  // launching a manual round with whatever stake/mode happens to be left
+  // over from before Autoplay started.
+  if (autoplaySessionStarted) {
+    openAutoplayModal();
+    return;
+  }
   launchRound();
 }
 
