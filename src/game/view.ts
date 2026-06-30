@@ -233,7 +233,7 @@ export function mount(root: HTMLElement): Refs {
 
     <div class="pro-compact" data-ref="proCompact" hidden>
       <div>
-        <span class="lbl"><span class="icon">${COINS_SVG}</span>Initial Stake</span>
+        <span class="lbl"><span class="icon">${COINS_SVG}</span>Stake</span>
         <span class="val" data-ref="proCompactInitial">€1.00</span>
       </div>
       <div>

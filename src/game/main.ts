@@ -345,8 +345,15 @@ function renderAction(state: RoundState): void {
   updateProPanelVisibility(state);
 }
 
-function renderProCompact(): void {
-  refs.proCompactInitial.textContent = `€${fmtMoney(proSettings.initialStake)}`;
+function renderProCompact(state: RoundState): void {
+  // Once a Pro round has been launched, `state.mode` stays "pro"/"pro-auto"
+  // (and `state.stake` reflects the live, tap-accumulated stake, already
+  // capped at maxStake by the existing tap logic) for the rest of that
+  // round and through the idle period until the next launch. Before the
+  // very first Pro launch there is no round state yet, so fall back to the
+  // configured Initial Stake.
+  const liveStake = isProRound(state.mode) ? state.stake : proSettings.initialStake;
+  refs.proCompactInitial.textContent = `€${fmtMoney(liveStake)}`;
   refs.proCompactPerTap.textContent = `+ €${fmtMoney(proSettings.perTap)}`;
   refs.proCompactMax.textContent = `€${fmtMoney(proSettings.maxStake)}`;
 }
@@ -374,7 +381,7 @@ function updateProPanelVisibility(state: RoundState): void {
     refs.proCompact.before(refs.betPanel);
   }
   refs.proCompact.hidden = !showCompact;
-  if (showCompact) renderProCompact();
+  if (showCompact) renderProCompact(state);
 }
 
 function autoplaySubText(): string {
