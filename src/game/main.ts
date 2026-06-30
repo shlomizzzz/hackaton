@@ -413,6 +413,13 @@ function renderAutoplayCompact(state: RoundState): void {
   refs.autoplayCompactTarget.textContent =
     ui.autoTarget !== null ? `${ui.autoTarget.toFixed(2)}×` : "Off";
   const proOn = autoplaySettings.proEnabled;
+  // The full "Auto Cash Out" label only gets visually cramped in the
+  // 5-indicator Autoplay+Pro layout (Stake | Rounds | Auto Cash Out |
+  // Per Tap | Max Stake). It's shortened here, and only here — this is
+  // the one ref used exclusively by this compact view, so the modal,
+  // tooltips, and the 3-indicator Autoplay-without-Pro layout are
+  // untouched. No change to the icon, value, spacing, or behavior.
+  refs.autoplayCompactTargetLabel.textContent = proOn ? "A. Cash Out" : "Auto Cash Out";
   refs.autoplayCompactPerTapWrap.hidden = !proOn;
   refs.autoplayCompactMaxWrap.hidden = !proOn;
   if (proOn) {

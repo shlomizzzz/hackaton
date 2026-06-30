@@ -57,6 +57,7 @@ export interface Refs {
   autoplayCompactStake: HTMLElement;
   autoplayCompactRounds: HTMLElement;
   autoplayCompactTarget: HTMLElement;
+  autoplayCompactTargetLabel: HTMLElement;
   autoplayCompactPerTapWrap: HTMLElement;
   autoplayCompactPerTap: HTMLElement;
   autoplayCompactMaxWrap: HTMLElement;
@@ -272,7 +273,7 @@ export function mount(root: HTMLElement): Refs {
         <span class="val" data-ref="autoplayCompactRounds">25</span>
       </div>
       <div>
-        <span class="lbl"><span class="icon icon-amber">${SHIELD_CHECK_SVG}</span>Auto Cash Out</span>
+        <span class="lbl"><span class="icon icon-amber">${SHIELD_CHECK_SVG}</span><span data-ref="autoplayCompactTargetLabel">Auto Cash Out</span></span>
         <span class="val" data-ref="autoplayCompactTarget">2.00×</span>
       </div>
       <div data-ref="autoplayCompactPerTapWrap" hidden>
@@ -546,6 +547,7 @@ export function mount(root: HTMLElement): Refs {
     autoplayCompactStake: q("autoplayCompactStake"),
     autoplayCompactRounds: q("autoplayCompactRounds"),
     autoplayCompactTarget: q("autoplayCompactTarget"),
+    autoplayCompactTargetLabel: q("autoplayCompactTargetLabel"),
     autoplayCompactPerTapWrap: q("autoplayCompactPerTapWrap"),
     autoplayCompactPerTap: q("autoplayCompactPerTap"),
     autoplayCompactMaxWrap: q("autoplayCompactMaxWrap"),
