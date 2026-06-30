@@ -263,9 +263,20 @@ function renderHeader(): void {
 }
 
 function renderTabs(): void {
-  refs.tabClassicPill.classList.toggle("active", ui.mode === "classic");
-  refs.tabProPill.classList.toggle("active", ui.mode === "pro");
-  refs.tabAuto.classList.toggle("active", ui.mode === "auto");
+  // Mirrors the compact-view priority in updateProPanelVisibility():
+  // once an Autoplay session has been started, the Autoplay tab stays the
+  // selected one (through the run and the idle period after it stops),
+  // regardless of whatever ui.mode (Classic/Pro) was selected before
+  // Autoplay began. It only reverts when the user explicitly taps
+  // Classic or Pro, which reset autoplaySessionStarted in setMode()/
+  // onTabProClick(). Previously this checked `ui.mode === "auto"`, which
+  // is never true — ui.mode is only ever "classic" or "pro"; "auto" is
+  // purely an internal engine round-mode value — so the Autoplay tab
+  // never actually highlighted, and the stale Classic/Pro selection
+  // stayed highlighted instead once Autoplay stopped.
+  refs.tabClassicPill.classList.toggle("active", !autoplaySessionStarted && ui.mode === "classic");
+  refs.tabProPill.classList.toggle("active", !autoplaySessionStarted && ui.mode === "pro");
+  refs.tabAuto.classList.toggle("active", autoplaySessionStarted);
   refs.tabsRow.hidden = autoplay.active;
   refs.btnStopAutoplay.hidden = !autoplay.active;
   refs.btnStopAutoplay.disabled = autoplay.pendingStop;
